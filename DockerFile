@@ -25,7 +25,15 @@ RUN apt-get update && apt-get install -y \
     libcurl4-gnutls-dev \
     nginx
 
-    RUN docker-php-ext-install pdo pdo_mysql bcmath curl opache
+    RUN docker-php-ext-install pdo pdo_mysql bcmath curl opache \
+        && docker-php-ext-configure gd --with-freetype --with-jpeg \
+        && docker-php-ext-install gd \
+        && docker-php-ext-install zip \
+        && docker-php-ext-install exif \
+        && docker-php-ext-install pcntl \
+        && docker-php-ext-install pgsql pdo_pgsql \
+        && pecl install redis \
+        && docker-php-ext-enable redis
 
     WORKDIR /var/www/
 
