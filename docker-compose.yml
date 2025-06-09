@@ -8,9 +8,13 @@ services:
     build:
       context: .
       target: php
-      working_dir: /var/www
-      volumes:
-        - .:/var/www
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - docker_network
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
     ports:
       - "8000:8000"
     depends_on:
