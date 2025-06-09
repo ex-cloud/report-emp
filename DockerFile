@@ -1,0 +1,45 @@
+FROM php:8.2-fpm as php
+
+ENV PHP_OPCACHE_ENABLED=1 
+ENV PHP_OPCACHE_ENABLED-CLI=0
+ENV PHP_OPCACHE_MEMORY_CONSUMPTION=128 
+ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER=8 
+ENV PHP_OPCACHE_MAX_ACCELERATED_FILES=4000 
+ENV PHP_OPCACHE_REVALIDATE_FREQ=1 
+ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+
+RUN usermod -u 1000 www-data
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libpq-dev \
+    libxml2-dev \
+    libonig-dev \
+    libcurl4-openssl-dev \
+    git \
+    unzip \
+    libcurl4-gnutls-dev \
+    nginx
+
+    RUN docker-php-ext-install pdo pdo_mysql bcmath curl opache
+
+    WORKDIR /var/www/
+
+    COPY --chown=www-data . .
+    COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
+    COPY ./docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+    COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
+    
+    COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+    RUN php artisan key:generate
+    RUN php artisan config:cache
+    RUN php artisan cache:clear
+
+    RUN chmod -R 755 /var/www/storage
+    RUN chmod -R 755 /var/www/bootstrap/cache
+
+    ENTRYPOINT [ "docker/entrypoint.sh" ]

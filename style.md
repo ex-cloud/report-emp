@@ -1,5 +1,49 @@
 
+php_laravel:
+    build: ./php
+    image: php:latest
+    container_name: php_laravel
+    hostname: "php"
+    volumes:
+      - ./src:/var/www/html
+      - ./php/www/conf:/user/local/etc/php-fpm.d/www.conf
+    working_dir: /var/www/html
+    depends_on:
+      - mysql_laravel
+    
+    mysql_laravel:
+      image: mysql:latest
+      container_name: mysql_laravel
+      restart: unless-stopped
+      ttyle: true
+      ports:
+        - "3306:3306"
+      volumes:
+        - ./database/data:/var/lib/mysql
+        - ./database/conf:/etc/mysql/conf.d:ro
+      environment:
+        MYSQL_ROOT_PASSWORD: 123
+        MYSQL_DATABASE: k2net_report_app
+        MYSQL_USER: root
+        MYSQL_PASSWORD: 123
+        TZ: "Asia/Jakarta"
+        SERVICE_TAGS: dev
+        SERVICE_NAME: mysql
 
+    nginx_laravel:
+      build: ./nginx
+      image: nginx:latest
+      container_name: nginx_laravel
+      hostname: "nginx"
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - ./src:/var/www/html
+        - ./nginx/conf:/etc/nginx/conf.d
+        - ./nginx/ssl:/etc/nginx/ssl
+      depends_on:
+        - php_laravel
 
 
 
